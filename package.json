@@ -1,0 +1,11 @@
+{
+  "name": "first-backend-project",
+  "version": "1.0.0",
+  "description": "Just started creating industry standard backend project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jay Mistry",
+  "license": "ISC"
+}
