@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema(
 // password should be encrypted, so here is the code to encrypt the password as user changes or adds new password
 // pre is a middleware that stops the process temprarily and performs given function and then does the work it was doing before (in this case saving the data)
 userSchema.pre("save", async function(next) {
-    if (!userSchema.isModified("password")) {
+    if (!this.isModified("password")) {
         return next();
     }
     // encrytp this.password in 10 rounds, if you change the round, encrypted password will change.

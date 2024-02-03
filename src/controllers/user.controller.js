@@ -11,6 +11,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 //todo Step 4: Upload images or files to cloudinary
 //todo Step 5: Store data in mongoDB
 const registerUser = asyncHandler(async (req, res) => {
+    // console.log("Body of request: ", req.body);
+    console.log("Body of request: ", req.files);
     const { username, email, fullname, password } = req.body; // step 1
 
     // step 2
@@ -24,17 +26,20 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     // check if user already exists or not in db: step 3
-    const exists = User.findOne({
+    const exists = await User.findOne({
         $or: [{ username }, { email }], // if one of these two already exists it will return something
     });
 
-    if (exists) {
-        throw new ApiError(400, "Username or email already exists");
-    }
-
     // check if the image is there or not, and if they are there then upload it to cloudinary: step 4
     const avtarLocalPath = req.files?.avtar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    let coverImageLocalPath;
+    if (
+        req.files &&
+        Array.isArray(req.files.coverImage) &&
+        req.files.coverImage.length > 0
+    ) {
+        coverImageLocalPath = req.files.coverImage[0].path;
+    }
 
     if (!avtarLocalPath) {
         throw new ApiError(400, "Avtar file is required!");
@@ -42,6 +47,11 @@ const registerUser = asyncHandler(async (req, res) => {
 
     const avtar = await uploadOnCloudinary(avtarLocalPath);
     const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
+    if (exists) {
+        // moved it here because if it was there (where it was before) then if the user already exists then image wont be deteled because program stops just there and deletion of image is while uploading it.
+        throw new ApiError(400, "Username or email already exists");
+    }
 
     if (!avtar) {
         throw new ApiError(500, "Avtar uploading problem!");
