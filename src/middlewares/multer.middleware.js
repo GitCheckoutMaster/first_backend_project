@@ -10,7 +10,7 @@ const storage = multer.diskStorage({
 });
 
 // main object from which we can manage files
-const upload = multer({ storage });
+export const upload = multer({ storage });
 
 // if you only wrote this line, it would work but the above code is used if you want to name the file, if you want to make it random, writing just below line works.
 // const upload = multer({ dest: "./public/temp" });
