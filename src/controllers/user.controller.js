@@ -12,7 +12,6 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 //todo Step 5: Store data in mongoDB
 const registerUser = asyncHandler(async (req, res) => {
     // console.log("Body of request: ", req.body);
-    console.log("Body of request: ", req.files);
     const { username, email, fullname, password } = req.body; // step 1
 
     // step 2
