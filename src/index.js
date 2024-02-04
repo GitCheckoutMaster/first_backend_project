@@ -9,6 +9,10 @@ dotenv.config({
 
 connectDB()
     .then(() => {
+        app.get("/justForFun", (req, res) => {
+            //! remove this later
+            res.send(`Howdy, i hacked you!!  your username is ${req.cookies.UserName}`);
+        })
         app.listen(process.env.PORT || 8000, () => {
             console.log("Server is running at port ", process.env.PORT || 8000);
         });
