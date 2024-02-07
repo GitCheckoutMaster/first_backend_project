@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginUser, logoutUser, registerUser } from "../controllers/user.controller.js";
+import { loginUser, logoutUser, refreshTokens, registerUser } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/authentication.middleware.js";
 
@@ -16,6 +16,9 @@ userRouter.route("/register").post(
 );
 
 userRouter.route("/login").post(loginUser);
+
+// secured routes: means you need to be logged in to use this
 userRouter.route("/logout").post(verifyJWT ,logoutUser);
+userRouter.route("/refresh-token").post(refreshTokens);
 
 export default userRouter;

@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { jwt } from "jsonwebtoken";
 
 async function generateAccessAndRefreshToken(userId) {
     try {
@@ -150,16 +151,20 @@ const loginUser = asyncHandler(async (req, res) => {
 const logoutUser = asyncHandler(async (req, res) => {
     // to logout we need to do 2 things first is to clear tokens and second is to clear cookeis
     // but we do not have access to user, so we created a middleware authentication.middleware.js just to seperate code, that could be written here as well but it would make things messy...
-    User.findByIdAndUpdate(req.user._id, { 
-        $set: { refreshToken: undefined } 
-    }, {
-        new: true,
-    });
+    User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: { refreshToken: undefined },
+        },
+        {
+            new: true,
+        }
+    );
 
     const options = {
         httpOnly: true,
         secure: true,
-    }
+    };
 
     return res
         .status(200)
@@ -169,4 +174,59 @@ const logoutUser = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "User logged out successfully!!"));
 });
 
-export { registerUser, loginUser, logoutUser };
+//* this function is used when user's access token expires, if you dont understand the concept of tokens then see video of "what is access and refresh tokens"
+const refreshTokens = asyncHandler(async (req, res) => {
+    // this is a secured route, means only loggedin user can access it
+    // and if user is loggedin then there are cookies of access and refresh tokens
+    const oldRefreshToken = req.cookie?.RefreshToken || req.body.RefreshToken;
+
+    if (!oldRefreshToken) {
+        throw new ApiError(401, "Invalid refresh token");
+    }
+
+    // see what decoded information looks like in User.generateRefreshToken function
+    const decodedOldRefreshToken = jwt.verify(
+        oldRefreshToken,
+        process.env.REFRESH_TOKEN_SECRET
+    );
+
+    if (!decodedOldRefreshToken) {
+        throw new ApiError(
+            401,
+            "Something went wrong while decoding refreshToken"
+        );
+    }
+
+    // get the user with id
+    const user = await User.findById(decodedOldRefreshToken._id);
+    if (!user) {
+        throw new ApiError(401, "Invalid refresh token");
+    }
+
+    // means we found the user, then we check if the user's refresh token and the refresh token we got from cookie is equal or not
+    if (oldRefreshToken != user.refreshToken) {
+        throw new ApiError(401, "Invalid refresh token");
+    }
+
+    const { newAccessToken, newRefreshToken } =
+        await generateAccessAndRefreshToken(user._id);
+    
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+        .status(200)
+        .cookie("AccessToken", newAccessToken, options)
+        .cookie("RefreshToken", newRefreshToken, options)
+        .json(
+            new ApiResponse(
+                200,
+                { newAccessToken, newRefreshToken },
+                "Refreshed Successfully!!"
+            )
+        );
+});
+
+export { registerUser, loginUser, logoutUser, refreshTokens };
