@@ -103,7 +103,6 @@ const loginUser = asyncHandler(async (req, res) => {
     //todo Generate access and refresh token and give them to user by cookies
 
     const { email, username, password } = req.body;
-    console.log(req.body);
 
     if (!email || !username || !password) {
         throw new ApiError(400, "Invalid username, email or password");
@@ -149,6 +148,8 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
+    // to logout we need to do 2 things first is to clear tokens and second is to clear cookeis
+    // but we do not have access to user, so we created a middleware authentication.middleware.js just to seperate code, that could be written here as well but it would make things messy...
     User.findByIdAndUpdate(req.user._id, { 
         $set: { refreshToken: undefined } 
     }, {
@@ -164,6 +165,7 @@ const logoutUser = asyncHandler(async (req, res) => {
         .status(200)
         .clearCookie("AccessToken", options)
         .clearCookie("RefreshToken", options)
+        .clearCookie("UserName", options)
         .json(new ApiResponse(200, {}, "User logged out successfully!!"));
 });
 
