@@ -1,9 +1,9 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { jwt } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 async function generateAccessAndRefreshToken(userId) {
     try {
@@ -231,14 +231,15 @@ const refreshTokens = asyncHandler(async (req, res) => {
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { oldPass, newPass } = req.body;
-
-    if (!User.isPasswordCorrect(oldPass)) {
+    
+    const user = await User.findById(req.user._id);
+    const passwordAuth = await user.isPasswordCorrect(oldPass);
+    if (!passwordAuth) {
         throw new ApiError(401, "Old password is incorrect");
     }
 
-    const user = await User.findById(req.user._id);
     user.password = newPass;
-    user.save();
+    await user.save();
 
     return res
         .status(200)
@@ -278,8 +279,8 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 });
 
 const updateAvtar = asyncHandler(async (req, res) => {
-    const avtarLocalPath = req.file?.path;
-
+    const avtarLocalPath = req.files?.avtar[0]?.path;
+    
     if (!avtarLocalPath) {
         throw new ApiError(401, "Avtar file is missing");
     }
@@ -290,15 +291,24 @@ const updateAvtar = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Error while uploading...");
     }
 
-    const user = User.findByIdAndUpdate(
-        req.user._id,
-        {
-            $set: {
-                avtar: uploadedAvtar.url,
-            },
-        },
-        { new: true }
-    ).select("-password");
+    // const user = User.findByIdAndUpdate(
+    //     req.user._id,
+    //     {
+    //         $set: {
+    //             avtar: uploadedAvtar.url,
+    //         },
+    //     },
+    //     { new: true }
+    // ).select("-password");
+
+    const user = await User.findById(req.user._id).select("-password");
+    const check = await deleteOnCloudinary(user.avtar);
+    if (!check) {
+        console.log("Avrtar isn't deleted!");
+    }
+
+    user.avtar = uploadedAvtar.url;
+    await user.save();
 
     return res
         .status(200)
@@ -306,7 +316,7 @@ const updateAvtar = asyncHandler(async (req, res) => {
 });
 
 const updateCoverImage = asyncHandler(async (req, res) => {
-    const coverImageLocalPath = req.file?.path;
+    const coverImageLocalPath = req.files?.coverImage[0].path;
 
     if (!coverImageLocalPath) {
         throw new ApiError(401, "cover image file is missing");
@@ -318,19 +328,36 @@ const updateCoverImage = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Error while uploading...");
     }
 
-    const user = User.findByIdAndUpdate(
-        req.user._id,
-        {
-            $set: {
-                coverImage: uploadedcoverImage.url,
-            },
-        },
-        { new: true }
-    ).select("-password");
+    // const user = User.findByIdAndUpdate(
+    //     req.user._id,
+    //     {
+    //         $set: {
+    //             coverImage: uploadedcoverImage.url,
+    //         },
+    //     },
+    //     { new: true }
+    // ).select("-password");
+    const user = await User.findById(req.user._id).select("-password");
+    const check = await deleteOnCloudinary(user.coverImage);
+    if (!check) {
+        console.log("Cover image isn't deleted!");
+    }
 
+    user.coverImage = uploadedcoverImage.url;
+    await user.save();
     return res
         .status(200)
         .json(new ApiResponse(200, user, "cover image updated successfully"));
 });
 
-export { registerUser, loginUser, logoutUser, refreshTokens };
+export {
+    registerUser,
+    loginUser,
+    logoutUser,
+    refreshTokens,
+    changeCurrentPassword,
+    getCurrUser,
+    updateAccountDetails,
+    updateAvtar,
+    updateCoverImage,
+};

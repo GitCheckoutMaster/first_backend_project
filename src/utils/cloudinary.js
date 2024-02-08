@@ -12,6 +12,7 @@ cloudinary.config({
 const uploadOnCloudinary = async (localFilePath) => {
     try {
         if (!localFilePath) {
+            console.log("here we are and path is this: ", localFilePath);
             return null;
         }
         // upload the file
@@ -29,4 +30,21 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 };
 
-export { uploadOnCloudinary };
+const deleteOnCloudinary = async (url) => {
+    // extract public id of photo from url
+    let publicId = "";
+    for (let i = 0; i < url.length; i++) {
+        publicId += url[i];
+        if (url[i] == "/") {
+            publicId = "";
+        }
+    }
+
+    await cloudinary.uploader.destroy(publicId).catch((error) => {
+        console.log("something went wrong while deleting file on cloudinary. ERROR", error);
+        return false;
+    });
+    return true;
+};
+
+export { uploadOnCloudinary, deleteOnCloudinary };
