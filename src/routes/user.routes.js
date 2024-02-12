@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
     changeCurrentPassword,
     getCurrUser,
+    getUserChannelProfile,
     loginUser,
     logoutUser,
     refreshTokens,
@@ -39,5 +40,6 @@ userRouter
 userRouter
     .route("/updateCoverImage")
     .post(verifyJWT, upload.fields([{ name: "coverImage" }]), updateCoverImage);
+userRouter.route("/getUserChannelProfile").post(verifyJWT, getUserChannelProfile);
 
 export default userRouter;
