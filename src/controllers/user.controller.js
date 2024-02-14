@@ -279,7 +279,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 });
 
 const updateAvtar = asyncHandler(async (req, res) => {
-    const avtarLocalPath = req.files?.avtar[0]?.path;
+    const avtarLocalPath = req.file?.path;
     
     if (!avtarLocalPath) {
         throw new ApiError(401, "Avtar file is missing");
@@ -316,7 +316,7 @@ const updateAvtar = asyncHandler(async (req, res) => {
 });
 
 const updateCoverImage = asyncHandler(async (req, res) => {
-    const coverImageLocalPath = req.files?.coverImage[0].path;
+    const coverImageLocalPath = req.file?.path;
 
     if (!coverImageLocalPath) {
         throw new ApiError(401, "cover image file is missing");
@@ -352,8 +352,8 @@ const updateCoverImage = asyncHandler(async (req, res) => {
 
 const getUserChannelProfile = asyncHandler(async (req, res) => {
     // to get values from url
-    // const {username} = req.params; // this is real
-    const {username} = req.query;
+    const {username} = req.params; // this is real
+    // const {username} = req.query;
 
     if (!username?.trim()) {
         throw new ApiError(400, "Username is missing!");

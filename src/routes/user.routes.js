@@ -32,14 +32,14 @@ userRouter.route("/login").post(loginUser);
 userRouter.route("/logout").post(verifyJWT, logoutUser);
 userRouter.route("/refresh-token").post(refreshTokens);
 userRouter.route("/changePassword").post(verifyJWT, changeCurrentPassword);
-userRouter.route("/getCurrentUser").post(verifyJWT, getCurrUser);
-userRouter.route("/updateAccountDetails").post(verifyJWT, updateAccountDetails);
+userRouter.route("/getCurrentUser").get(verifyJWT, getCurrUser);
+userRouter.route("/updateAccountDetails").patch(verifyJWT, updateAccountDetails);
 userRouter
     .route("/updateAvtar")
-    .post(verifyJWT, upload.fields([{ name: "avtar" }]), updateAvtar);
+    .patch(verifyJWT, upload.single("avtar"), updateAvtar);
 userRouter
     .route("/updateCoverImage")
-    .post(verifyJWT, upload.fields([{ name: "coverImage" }]), updateCoverImage);
-userRouter.route("/getUserChannelProfile").post(verifyJWT, getUserChannelProfile);
+    .post(verifyJWT, upload.single("coverImage"), updateCoverImage);
+userRouter.route("/c/:username").get(verifyJWT, getUserChannelProfile);
 
 export default userRouter;
