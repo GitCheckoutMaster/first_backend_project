@@ -231,7 +231,7 @@ const refreshTokens = asyncHandler(async (req, res) => {
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { oldPass, newPass } = req.body;
-    
+
     const user = await User.findById(req.user._id);
     const passwordAuth = await user.isPasswordCorrect(oldPass);
     if (!passwordAuth) {
@@ -280,7 +280,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
 const updateAvtar = asyncHandler(async (req, res) => {
     const avtarLocalPath = req.file?.path;
-    
+
     if (!avtarLocalPath) {
         throw new ApiError(401, "Avtar file is missing");
     }
@@ -352,7 +352,7 @@ const updateCoverImage = asyncHandler(async (req, res) => {
 
 const getUserChannelProfile = asyncHandler(async (req, res) => {
     // to get values from url
-    const {username} = req.params; // this is real
+    const { username } = req.params; // this is real
     // const {username} = req.query;
 
     if (!username?.trim()) {
@@ -413,7 +413,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
                 isSubscribed: 1,
                 avtar: 1,
                 coverImage: 1,
-                email: 1
+                email: 1,
             },
         },
     ]);
@@ -424,7 +424,64 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(new ApiResponse(200, channel[0], "User channel fetched successfully!"));
+        .json(
+            new ApiResponse(
+                200,
+                channel[0],
+                "User channel fetched successfully!"
+            )
+        );
+});
+
+const getWatchHistory = asyncHandler(async (req, res) => {
+    // get current user's watch history
+    const user = await User.aggregate([
+        {
+            // find current user
+            $match: {
+                _id: new mongoose.Types.ObjectId(req.user._id), // because it is an object and req.user._id gives an string
+            },
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "watchHistory",
+                foreignField: "_id",
+                as: "watchHistory",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                        },
+                    },
+                    {
+                        // if this second pipeline dosen't work then put it in the first pipeline as nested pipeline just like above...
+                        $project: {
+                            fullname: 1,
+                            username: 1,
+                            avtar: 1,
+                        },
+                    },
+                    {
+                        $addFields: {
+                            owner: {
+                                $first: "$owner",
+                            },
+                        },
+                    },
+                ],
+            },
+        },
+    ]);
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, user[0].watchHistory, "Watch history fetched successfully!")
+        );
 });
 
 export {
@@ -438,4 +495,5 @@ export {
     updateAvtar,
     updateCoverImage,
     getUserChannelProfile,
+    getWatchHistory,
 };
