@@ -25,10 +25,46 @@ const uploadOnCloudinary = async (localFilePath) => {
         return response;
     } catch (error) {
         // file is not uploaded to cloudinary, but it is in our server, so we need to delete it.
+        console.log(error);
         fs.unlinkSync(localFilePath);
         return null;
     }
 };
+
+//! delete after using it once or twice
+const uploadToCloudinaryWithRetries = async (localFilePath, maxRetries = 3, retryDelay = 1000) => {
+    let retries = 0;
+    while (retries < maxRetries) {
+        try {
+            // Upload the video file to Cloudinary
+            const response = await cloudinary.uploader.upload(localFilePath, {
+                resource_type: "video",
+            });
+
+            // Delete the local file after successful upload
+            fs.unlinkSync(localFilePath);
+
+            console.log("Video uploaded successfully:", response.secure_url);
+            return response;
+        } catch (error) {
+            console.error(
+                "Error uploading video to Cloudinary:",
+                error.message
+            );
+            retries++;
+            if (retries < maxRetries) {
+                console.log(
+                    `Retrying upload (attempt ${retries} of ${maxRetries}) in ${retryDelay} ms...`
+                );
+                await new Promise((resolve) => setTimeout(resolve, retryDelay));
+            } else {
+                console.error("Max retries exceeded. Upload failed.");
+                return null;
+            }
+        }
+    }
+};
+
 
 const deleteOnCloudinary = async (url) => {
     // extract public id of photo from url
@@ -47,4 +83,4 @@ const deleteOnCloudinary = async (url) => {
     return true;
 };
 
-export { uploadOnCloudinary, deleteOnCloudinary };
+export { uploadOnCloudinary, deleteOnCloudinary, uploadToCloudinaryWithRetries };
