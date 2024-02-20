@@ -5,23 +5,8 @@ import {
     uploadOnCloudinary,
     uploadToCloudinaryWithRetries,
 } from "../utils/cloudinary.js";
-import { exec } from "child_process";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
-
-async function getVideoDuration(videoPath) {
-    return new Promise((resolve, reject) => {
-        const command = `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${videoPath}"`;
-        exec(command, (error, stdout, stderr) => {
-            if (error) {
-                reject(error);
-                return;
-            }
-            const duration = parseFloat(stdout);
-            resolve(duration);
-        });
-    });
-}
 
 const uploadVideo = asyncHandler(async (req, res) => {
     //todo 1 -> get the files from req.files
@@ -42,15 +27,6 @@ const uploadVideo = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Title or description not found!");
     }
 
-    let duration = undefined;
-    getVideoDuration('/home/mrprince/Programs/Backend/Project\ \(Advance\ backend\)/' + localVideoPath)
-        .then((d) => {
-            duration = d;
-        })
-        .catch((error) => {
-            console.log(error);
-        });
-
     const uploadVideo =
         await uploadToCloudinaryWithRetries(localVideoPath);
     const uploadThumbnail = await uploadOnCloudinary(localThumbnailPath);
@@ -67,7 +43,7 @@ const uploadVideo = asyncHandler(async (req, res) => {
         thumbnail: uploadThumbnail.url,
         title: title,
         description: description,
-        duration: duration,
+        duration: uploadVideo.duration,
         views: 0,
         isPublished: true,
         owner: new mongoose.Types.ObjectId(req.user._id),
