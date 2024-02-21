@@ -68,13 +68,14 @@ const uploadToCloudinaryWithRetries = async (localFilePath, maxRetries = 3, retr
 
 const deleteOnCloudinary = async (url) => {
     // extract public id of photo from url
-    let publicId = "";
-    for (let i = 0; i < url.length; i++) {
-        publicId += url[i];
-        if (url[i] == "/") {
-            publicId = "";
-        }
-    }
+    // let publicId = "";
+    // for (let i = 0; i < url.length; i++) {
+    //     publicId += url[i];
+    //     if (url[i] == "/") {
+    //         publicId = "";
+    //     }
+    // }
+    const publicId = url.split("/").pop().split(".")[0];
 
     await cloudinary.uploader.destroy(publicId).catch((error) => {
         console.log("something went wrong while deleting file on cloudinary. ERROR", error);
