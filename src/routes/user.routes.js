@@ -28,10 +28,10 @@ userRouter.route("/register").post(
 );
 
 userRouter.route("/login").post(loginUser);
+userRouter.route("/refresh-token").post(refreshTokens);
 
 // secured routes: means you need to be logged in to use this
 userRouter.route("/logout").post(verifyJWT, logoutUser);
-userRouter.route("/refresh-token").post(refreshTokens);
 userRouter.route("/changePassword").post(verifyJWT, changeCurrentPassword);
 userRouter.route("/getCurrentUser").get(verifyJWT, getCurrUser);
 userRouter.route("/updateAccountDetails").patch(verifyJWT, updateAccountDetails);

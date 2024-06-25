@@ -65,7 +65,7 @@ userSchema.methods.isPasswordCorrect = async function(pass) {
     return await bcrypt.compare(pass, this.password);
 }
 
-// generate tokens for GOD-KNOWS-WHY (he said he'll explain it later)
+// generate tokens
 userSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         {
@@ -85,7 +85,7 @@ userSchema.methods.generateAccessToken = function () {
     );
 }
 
-// generate refresh token for again GOD-KNOWS-WHY and GOD-KNOWS-WHAT-IS-IT!! (again he said he'll explain it later)
+// generate refresh token
 userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {

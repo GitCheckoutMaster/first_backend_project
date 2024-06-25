@@ -131,7 +131,7 @@ const loginUser = asyncHandler(async (req, res) => {
         "-password -refreshToken"
     );
 
-    // is is because we dont want that frontend can modify it directly
+    // this is because we dont want that frontend can modify it directly
     // with this only server can modify cookies
     const options = {
         httpOnly: true,
@@ -149,7 +149,7 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
-    // to logout we need to do 2 things first is to clear tokens and second is to clear cookeis
+    // to logout we need to do 2 things first is to clear tokens and second is to clear cookies
     // but we do not have access to user, so we created a middleware authentication.middleware.js just to seperate code, that could be written here as well but it would make things messy...
     User.findByIdAndUpdate(
         req.user._id,
